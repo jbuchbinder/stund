@@ -669,8 +669,12 @@ stunRand()
       tick = hightick;
       tick <<= 32;
       tick |= lowtick;
-#elif defined(__GNUC__) && ( defined(__i686__) || defined(__i386__) || defined(__amd64__) || defined(__AMD64__) )
+#elif defined(__GNUC__) && ( defined(__i686__) || defined(__i386__) )
       asm("rdtsc" : "=A" (tick));
+#elif defined(__GNUC__) && ( defined(__x86_64__) || defined(__amd64__) || defined(__AMD64__) )
+      unsigned _a,_d;
+      asm("rdtsc" : "=A" (_a), "=D" (_d));
+      tick = ((unsigned long long) (_a)) | (( (unsigned long long) (_d)) << 32);
 #elif defined (__SUNPRO_CC) || defined( __sparc__ )	
       tick = gethrtime();
 #elif defined(__MACH__) 
@@ -1245,8 +1249,9 @@ stunServerProcessMsg( char* buf,
 }
 
 bool
-stunInitServer(StunServerInfo& info, const StunAddress4& myAddr,
-               const StunAddress4& altAddr, int startMediaPort, bool verbose )
+stunInitServer(StunServerInfo& info, const StunAddress4& myAddr, const StunAddress4& altAddr, 
+	const StunAddress4& myEAddr, const StunAddress4& altEAddr,
+	int startMediaPort, bool verbose )
 {
    assert( myAddr.port != 0 );
    assert( altAddr.port!= 0 );
@@ -1255,6 +1260,8 @@ stunInitServer(StunServerInfo& info, const StunAddress4& myAddr,
 	
    info.myAddr = myAddr;
    info.altAddr = altAddr;
+   info.myEAddr = myEAddr;
+   info.altEAddr = altEAddr;
 	
    info.myFd = INVALID_SOCKET;
    info.altPortFd = INVALID_SOCKET;
@@ -1554,10 +1561,9 @@ stunServerProcess(StunServerInfo& info, bool verbose)
          from.addr = info.myAddr.addr;
          from.port = relayPort;
       }
-      
       ok = stunServerProcessMsg( msg, msgLen, from, secondary,
-                                 recvAltIp ? info.altAddr : info.myAddr,
-                                 recvAltIp ? info.myAddr : info.altAddr, 
+                                 recvAltIp ? info.altEAddr : info.myEAddr,
+                                 recvAltIp ? info.myEAddr : info.altEAddr, 
                                  &resp,
                                  &dest,
                                  &hmacPassword,

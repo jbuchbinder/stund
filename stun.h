@@ -217,6 +217,8 @@ typedef struct
 {
       StunAddress4 myAddr;
       StunAddress4 altAddr;
+      StunAddress4 myEAddr;
+      StunAddress4 altEAddr;
       Socket myFd;
       Socket altPortFd;
       Socket altIpFd;
@@ -276,6 +278,8 @@ bool
 stunInitServer(StunServerInfo& info, 
                const StunAddress4& myAddr, 
                const StunAddress4& altAddr,
+               const StunAddress4& myEAddr, 
+               const StunAddress4& altEAddr,
                int startMediaPort,
                bool verbose);
 

@@ -30,6 +30,8 @@ usage()
         << " STUN servers need two IP addresses and two ports, these can be specified with:" << endl
         << "  -h sets the primary IP" << endl
         << "  -a sets the secondary IP" << endl
+        << "  -e (patch) sets the primary (e)xternal IP" << endl
+        << "  -s (patch) sets the (s)econdary external IP" << endl
         << "  -p sets the primary port and defaults to 3478" << endl
         << "  -o sets the secondary port and defaults to 3479" << endl
         << "  -b makes the program run in the backgroud" << endl
@@ -50,9 +52,13 @@ main(int argc, char* argv[])
    initNetwork();
 
    clog << "STUN server version "  <<  STUN_VERSION << endl;
+   clog << "Patched by Vladimir Latyshev (latysheff@gmail.com) to support STUN server working behind NAT" << endl;
+   clog << "type --help for help" << endl;
       
    StunAddress4 myAddr;
    StunAddress4 altAddr;
+   StunAddress4 myEAddr;
+   StunAddress4 altEAddr;
    bool verbose=false;
    bool background=false;
    
@@ -60,6 +66,10 @@ main(int argc, char* argv[])
    altAddr.addr = 0;
    myAddr.port = STUN_PORT;
    altAddr.port = STUN_PORT+1;
+   myEAddr.addr = 0;
+   altEAddr.addr = 0;
+   myEAddr.port = STUN_PORT;
+   altEAddr.port = STUN_PORT+1;
    int myPort = 0;
    int altPort = 0;
    int myMediaPort = 0;
@@ -104,6 +114,26 @@ main(int argc, char* argv[])
             exit(-1);
          }
          stunParseServerName(argv[arg], altAddr);
+      }
+      else if ( !strcmp( argv[arg] , "-e" ) )
+      {
+         arg++;
+         if ( argc <= arg ) 
+         {
+            usage();
+            exit(-1);
+         }
+         stunParseServerName(argv[arg], myEAddr);
+      }
+      else if ( !strcmp( argv[arg] , "-s" ) )
+      {
+         arg++;
+         if ( argc <= arg ) 
+         {
+            usage();
+            exit(-1);
+         }
+         stunParseServerName(argv[arg], altEAddr);
       }
       else if ( !strcmp( argv[arg] , "-p" ) )
       {
@@ -214,7 +244,15 @@ main(int argc, char* argv[])
    if (pid == 0) //child or not using background
    {
       StunServerInfo info;
-      bool ok = stunInitServer(info, myAddr, altAddr, myMediaPort, verbose);
+      if ( myEAddr.addr == 0 )
+      {
+         myEAddr = myAddr;
+      }
+      if ( altEAddr.addr == 0 )
+      {
+         altEAddr = altAddr;
+      }
+      bool ok = stunInitServer(info, myAddr, altAddr, myEAddr, altEAddr, myMediaPort, verbose);
       
       int c=0;
       while (ok)
@@ -223,7 +261,7 @@ main(int argc, char* argv[])
          c++;
          if ( c%1000 == 0 ) 
          {
-            clog << "*";
+            //clog << "*";
          }
       }
       // Notreached
