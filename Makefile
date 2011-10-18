@@ -1,4 +1,6 @@
 
+DESTDIR=
+prefix=/usr
 
 TARS= client.cxx  server.cxx  stun.cxx  stun.h  tlsServer.cxx  udp.cxx  udp.h \
 	Makefile rfc3489.txt\
@@ -29,8 +31,12 @@ LDFLAGS+=-g -O -Wall
 
 all: stund client 
 
+install:
+	install -m755 stund $(DESTDIR)$(prefix)/sbin/stund
+	install -m755 client $(DESTDIR)$(prefix)/bin/stun-client
+
 clean:
-	- rm *.o server client tlsServer 
+	- rm -f *.o stund client tlsServer 
 
 tar: $(TARS)
 	cd ..; tar cvfz `date +"stund/stund_$(VERSION)_$(PROG)%b%d.tgz"` \
