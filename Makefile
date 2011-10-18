@@ -29,11 +29,11 @@ LDFLAGS+=-g -O -Wall
 #LDFLAGS+= -lnsl -lsocket
 
 
-all: stund client 
+all: stund stun-client 
 
 install:
 	install -m755 stund $(DESTDIR)$(prefix)/sbin/stund
-	install -m755 client $(DESTDIR)$(prefix)/bin/stun-client
+	install -m755 stun-client $(DESTDIR)$(prefix)/bin/stun-client
 
 clean:
 	- rm -f *.o stund client tlsServer 
@@ -48,7 +48,7 @@ stund: server.o stun.o udp.o
 tlsServer: tlsServer.o stun.o udp.o
 	$(CXX) $(LDFLAGS) -o $@  $^
 
-client: client.o stun.o udp.o 
+stun-client: client.o stun.o udp.o 
 	$(CXX) $(LDFLAGS) -o $@  $^
 
 %.o:%.cxx
@@ -60,9 +60,10 @@ libstun.a: stun.o udp.o
 %:RCS/%
 	co $@
 
-# Dependancies
+# Dependencies
 server.o: stun.h udp.h 
 client.o: stun.h udp.h 
 stun.o: stun.h udp.h
 udp.o: stun.h udp.h 
 tlsServer.o: stun.h udp.h 
+
