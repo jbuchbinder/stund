@@ -27,7 +27,7 @@ LDFLAGS+=-g -O -Wall
 #LDFLAGS+= -lnsl -lsocket
 
 
-all: server client 
+all: stund client 
 
 clean:
 	- rm *.o server client tlsServer 
@@ -36,7 +36,7 @@ tar: $(TARS)
 	cd ..; tar cvfz `date +"stund/stund_$(VERSION)_$(PROG)%b%d.tgz"` \
 			 $(addprefix stund/, $(TARS))
 
-server: server.o stun.o udp.o 
+stund: server.o stun.o udp.o 
 	$(CXX) $(LDFLAGS) -o $@  $^
 
 tlsServer: tlsServer.o stun.o udp.o
